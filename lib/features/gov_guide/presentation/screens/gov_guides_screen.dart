@@ -100,7 +100,7 @@ class _GovGuidesScreenState extends ConsumerState<GovGuidesScreen> {
         appBar: AppBar(
           title: const Row(
             children: [
-              Icon(Icons.account_balance_rounded, color: AppColors.primaryLight),
+              Icon(Icons.account_balance_rounded, color: AppColors.primaryDark),
               SizedBox(width: 8),
               Text(
                 'دليل المعاملات الحكومية',
@@ -112,7 +112,7 @@ class _GovGuidesScreenState extends ConsumerState<GovGuidesScreen> {
             IconButton(
               icon: Icon(
                 _isGridView ? Icons.view_list_rounded : Icons.grid_view_rounded,
-                color: AppColors.primaryLight,
+                color: AppColors.primaryDark,
               ),
               tooltip: _isGridView ? 'عرض قائمة' : 'عرض شبكي',
               onPressed: () {
@@ -135,19 +135,19 @@ class _GovGuidesScreenState extends ConsumerState<GovGuidesScreen> {
               padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
               child: TextField(
                 controller: _searchController,
-                style: const TextStyle(color: Colors.white, fontSize: 14),
+                style: const TextStyle(color: AppColors.textPrimary, fontSize: 14),
                 onChanged: (val) => setState(() => _searchQuery = val.trim()),
                 decoration: InputDecoration(
                   hintText: 'ابحث عن معاملة، وثيقة، أو جهة حكومية...',
-                  hintStyle: const TextStyle(color: Colors.white38, fontSize: 13),
+                  hintStyle: const TextStyle(color: AppColors.textSecondary, fontSize: 13),
                   prefixIcon: const Icon(
                     Icons.search_rounded,
-                    color: AppColors.primaryLight,
+                    color: AppColors.primaryDark,
                     size: 20,
                   ),
                   suffixIcon: _searchQuery.isNotEmpty
                       ? IconButton(
-                          icon: const Icon(Icons.clear_rounded, color: Colors.white70, size: 18),
+                          icon: const Icon(Icons.clear_rounded, color: AppColors.textSecondary, size: 18),
                           tooltip: 'مسح البحث',
                           onPressed: () {
                             _searchController.clear();
@@ -156,19 +156,19 @@ class _GovGuidesScreenState extends ConsumerState<GovGuidesScreen> {
                         )
                       : null,
                   filled: true,
-                  fillColor: AppColors.surfaceDark,
+                  fillColor: AppColors.surface,
                   contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
-                    borderSide: const BorderSide(color: Colors.white12),
+                    borderSide: const BorderSide(color: AppColors.border),
                   ),
                   enabledBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
-                    borderSide: const BorderSide(color: Colors.white12),
+                    borderSide: const BorderSide(color: AppColors.border),
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(14),
-                    borderSide: const BorderSide(color: AppColors.primaryLight, width: 1.5),
+                    borderSide: const BorderSide(color: AppColors.primaryDark, width: 1.5),
                   ),
                 ),
               ),
@@ -192,26 +192,26 @@ class _GovGuidesScreenState extends ConsumerState<GovGuidesScreen> {
                             Icon(
                               cat.icon,
                               size: 16,
-                              color: isSelected ? Colors.white : Colors.white70,
+                              color: isSelected ? AppColors.onPrimary : AppColors.textSecondary,
                             ),
                             const SizedBox(width: 6),
                             Text(
                               cat.label,
                               style: TextStyle(
-                                color: isSelected ? Colors.white : Colors.white70,
-                                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                color: isSelected ? AppColors.onPrimary : AppColors.textSecondary,
+                                fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                               ),
                             ),
                           ],
                         ),
-                        backgroundColor: AppColors.surfaceDark,
+                        backgroundColor: AppColors.surface,
                         selectedColor: AppColors.primary,
-                        checkmarkColor: Colors.white,
+                        checkmarkColor: AppColors.onPrimary,
                         showCheckmark: false,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                           side: BorderSide(
-                            color: isSelected ? AppColors.primaryLight : Colors.white24,
+                            color: isSelected ? AppColors.primaryDark : AppColors.border,
                           ),
                         ),
                         onSelected: (selected) {
@@ -241,7 +241,7 @@ class _GovGuidesScreenState extends ConsumerState<GovGuidesScreen> {
                         Text(
                           'تعذر تحميل المعاملات: $error',
                           textAlign: TextAlign.center,
-                          style: const TextStyle(color: Colors.white70),
+                          style: const TextStyle(color: AppColors.textSecondary),
                         ),
                         const SizedBox(height: 16),
                         ElevatedButton.icon(
@@ -266,24 +266,24 @@ class _GovGuidesScreenState extends ConsumerState<GovGuidesScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(
+                            Icon(
                               Icons.search_off_rounded,
                               size: 54,
-                              color: Colors.white38,
+                              color: AppColors.textSecondary.withOpacity(0.5),
                             ),
                             const SizedBox(height: 14),
                             Text(
                               _searchQuery.isNotEmpty
-                                  ? 'لم يتم العثور على نتائج تطابق: "$_searchQuery"'
+                                   ? 'لم يتم العثور على نتائج تطابق: "$_searchQuery"'
                                   : 'لا توجد أدلة في هذا التصنيف حالياً',
                               textAlign: TextAlign.center,
-                              style: const TextStyle(color: Colors.white70, fontSize: 15),
+                              style: const TextStyle(color: AppColors.textSecondary, fontSize: 15),
                             ),
                             const SizedBox(height: 16),
                             ElevatedButton.icon(
                               style: ElevatedButton.styleFrom(
                                 backgroundColor: AppColors.primary,
-                                foregroundColor: Colors.white,
+                                foregroundColor: AppColors.onPrimary,
                               ),
                               onPressed: () {
                                 _searchController.clear();
@@ -390,7 +390,7 @@ class _GovGuideGridCard extends ConsumerWidget {
 
     return Card(
       elevation: 0,
-      color: AppColors.surfaceDark,
+      color: AppColors.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
@@ -423,20 +423,20 @@ class _GovGuideGridCard extends ConsumerWidget {
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.06),
+                        color: AppColors.background,
                         borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: Colors.white12),
+                        border: Border.all(color: AppColors.border),
                       ),
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const Icon(Icons.timer_outlined, size: 11, color: Colors.white70),
+                          const Icon(Icons.timer_outlined, size: 11, color: AppColors.textSecondary),
                           const SizedBox(width: 3),
                           Text(
                             guide.estimatedDays!,
                             style: const TextStyle(
                               fontSize: 10,
-                              color: Colors.white70,
+                              color: AppColors.textSecondary,
                               fontWeight: FontWeight.w500,
                             ),
                           ),
@@ -453,7 +453,7 @@ class _GovGuideGridCard extends ConsumerWidget {
                 maxLines: 2,
                 overflow: TextOverflow.ellipsis,
                 style: const TextStyle(
-                  color: Colors.white,
+                  color: AppColors.textPrimary,
                   fontWeight: FontWeight.bold,
                   fontSize: 13,
                   height: 1.3,
@@ -483,7 +483,7 @@ class _GovGuideGridCard extends ConsumerWidget {
                             style: TextStyle(
                               fontSize: 10,
                               fontWeight: FontWeight.bold,
-                              color: isAllDone ? AppColors.accent : Colors.white70,
+                              color: isAllDone ? AppColors.accent : AppColors.textSecondary,
                             ),
                           ),
                           Text(
@@ -502,7 +502,7 @@ class _GovGuideGridCard extends ConsumerWidget {
                         child: LinearProgressIndicator(
                           value: percent,
                           minHeight: 4,
-                          backgroundColor: Colors.white12,
+                          backgroundColor: AppColors.border,
                           valueColor: AlwaysStoppedAnimation<Color>(
                             isAllDone ? AppColors.accent : color,
                           ),
@@ -542,7 +542,7 @@ class _GovGuideCard extends ConsumerWidget {
     return Card(
       margin: const EdgeInsets.only(bottom: 14),
       elevation: 0,
-      color: AppColors.surfaceDark,
+      color: AppColors.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
@@ -578,7 +578,7 @@ class _GovGuideCard extends ConsumerWidget {
                         Text(
                           guide.title,
                           style: const TextStyle(
-                            color: Colors.white,
+                            color: AppColors.textPrimary,
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
                           ),
@@ -590,14 +590,14 @@ class _GovGuideCard extends ConsumerWidget {
                               const Icon(
                                 Icons.timer_outlined,
                                 size: 14,
-                                color: Colors.white70,
+                                color: AppColors.textSecondary,
                               ),
                               const SizedBox(width: 4),
                               Text(
                                 guide.estimatedDays!,
                                 style: const TextStyle(
                                   fontSize: 12,
-                                  color: Colors.white70,
+                                  color: AppColors.textSecondary,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -610,7 +610,7 @@ class _GovGuideCard extends ConsumerWidget {
                   const Icon(
                     Icons.arrow_back_ios_new_rounded,
                     size: 16,
-                    color: Colors.white60,
+                    color: AppColors.textSecondary,
                   ),
                 ],
               ),
@@ -619,7 +619,7 @@ class _GovGuideCard extends ConsumerWidget {
                 guide.description,
                 style: const TextStyle(
                   fontSize: 13,
-                  color: Colors.white70,
+                  color: AppColors.textSecondary,
                   height: 1.4,
                 ),
               ),
@@ -649,7 +649,7 @@ class _GovGuideCard extends ConsumerWidget {
                             style: TextStyle(
                               fontSize: 12,
                               fontWeight: FontWeight.bold,
-                              color: isAllDone ? AppColors.accent : Colors.white70,
+                              color: isAllDone ? AppColors.accent : AppColors.textSecondary,
                             ),
                           ),
                           Text(
@@ -668,7 +668,7 @@ class _GovGuideCard extends ConsumerWidget {
                         child: LinearProgressIndicator(
                           value: percent,
                           minHeight: 6,
-                          backgroundColor: Colors.white12,
+                          backgroundColor: AppColors.border,
                           valueColor: AlwaysStoppedAnimation<Color>(
                             isAllDone ? AppColors.accent : color,
                           ),

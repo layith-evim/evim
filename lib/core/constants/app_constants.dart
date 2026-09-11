@@ -21,6 +21,7 @@ class AppConstants {
   static const String tableGovGuides = 'gov_guides';
   static const String tableGovTasks = 'gov_tasks';
   static const String tableHouseholdGovProgress = 'household_gov_progress';
+  static const String tableNotifications = 'notifications';
 
   // Default Deadlines Warning Intervals (in days)
   static const int ikametWarningThresholdDays = 60;

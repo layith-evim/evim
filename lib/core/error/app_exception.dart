@@ -31,12 +31,18 @@ class AppException implements Exception {
   /// Factory mapper from Supabase AuthException
   factory AppException.fromAuth(AuthException error, [StackTrace? stackTrace]) {
     final msg = error.message.toLowerCase();
+    final code = (error.code ?? '').toLowerCase();
 
-    if (msg.contains('invalid login credentials') || msg.contains('invalid_credentials')) {
+    if (msg.contains('invalid login credentials') ||
+        msg.contains('invalid_credentials') ||
+        msg.contains('invalid_grant') ||
+        code.contains('invalid_credentials') ||
+        code.contains('invalid_grant') ||
+        error.statusCode == '400') {
       return AppException(
         code: 'AUTH_INVALID_CREDENTIALS',
-        messageAr: 'بيانات الدخول غير صحيحة. يرجى التحقق من البريد الإلكتروني وكلمة المرور.',
-        messageTr: 'Giriş bilgileri hatalı. Lütfen e-posta ve şifrenizi kontrol ediniz.',
+        messageAr: 'هذا الحساب غير مسجل أو تم حذفه مسبقاً. يرجى التأكد من البيانات أو إنشاء حساب جديد.',
+        messageTr: 'Bu hesap kayıtlı değil veya silinmiş. Lütfen bilgilerinizi kontrol edin veya yeni bir hesap oluşturun.',
         originalError: error,
         stackTrace: stackTrace,
       );

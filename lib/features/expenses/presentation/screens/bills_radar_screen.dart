@@ -51,7 +51,27 @@ class _BillsRadarScreenState extends ConsumerState<BillsRadarScreen> {
     final deadlinesAsync = ref.watch(criticalDeadlinesListProvider);
 
     if (currentHousehold == null) {
-      return const Center(child: Text('يرجى اختيار منزل'));
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.analytics_outlined, size: 48, color: AppColors.primary),
+              SizedBox(height: 12),
+              Text(
+                'لا توجد بيانات حالياً',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimaryLight),
+              ),
+              SizedBox(height: 6),
+              Text(
+                'يرجى تحديد أو إعداد منزل لعرض الفواتير ورادار المواعيد',
+                style: TextStyle(fontSize: 13, color: AppColors.textSecondaryLight),
+              ),
+            ],
+          ),
+        ),
+      );
     }
 
     final currencyFormat = NumberFormat('#,##0.00', 'en_US');
@@ -197,7 +217,7 @@ class _BillsRadarScreenState extends ConsumerState<BillsRadarScreen> {
             _currentTab == BillsRadarTab.expenses ? 'إضافة فاتورة' : 'إضافة موعد',
           ),
           backgroundColor: AppColors.primary,
-          foregroundColor: Colors.white,
+          foregroundColor: AppColors.onPrimary,
         ),
       ),
     );
@@ -747,7 +767,7 @@ class _AddExpenseBottomSheetState extends ConsumerState<_AddExpenseBottomSheet> 
                   selected: isSelected,
                   selectedColor: AppColors.primary,
                   labelStyle: TextStyle(
-                    color: isSelected ? Colors.white : AppColors.textPrimaryLight,
+                    color: isSelected ? AppColors.onPrimary : AppColors.textPrimaryLight,
                     fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                   ),
                   onSelected: (val) {

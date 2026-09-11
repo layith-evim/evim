@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../data/household_repository.dart';
 import '../../domain/models/household_model.dart';
@@ -9,12 +10,17 @@ import '../../../auth/data/auth_repository.dart';
 class CurrentHouseholdController extends AsyncNotifier<HouseholdModel?> {
   @override
   FutureOr<HouseholdModel?> build() async {
-    final repo = ref.watch(householdRepositoryProvider);
-    final households = await repo.getMyHouseholds();
-    if (households.isNotEmpty) {
-      return households.first;
+    try {
+      final repo = ref.watch(householdRepositoryProvider);
+      final households = await repo.getMyHouseholds();
+      if (households.isNotEmpty) {
+        return households.first;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('CurrentHouseholdController build fallback: $e');
+      return null;
     }
-    return null;
   }
 
   /// Switches active household context
@@ -58,6 +64,9 @@ final currentHouseholdProvider =
     AsyncNotifierProvider<CurrentHouseholdController, HouseholdModel?>(
   CurrentHouseholdController.new,
 );
+
+/// Alias provider for activeHouseholdProvider
+final activeHouseholdProvider = currentHouseholdProvider;
 
 /// Provider to fetch current user's membership role in the active household
 final currentHouseholdMemberRoleProvider =

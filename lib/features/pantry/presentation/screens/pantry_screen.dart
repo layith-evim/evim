@@ -35,7 +35,27 @@ class _PantryScreenState extends ConsumerState<PantryScreen> {
     final pantryListAsync = ref.watch(pantryListProvider);
 
     if (currentHousehold == null) {
-      return const Center(child: Text('يرجى اختيار منزل'));
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.kitchen_outlined, size: 48, color: AppColors.turquoise),
+              SizedBox(height: 12),
+              Text(
+                'لا توجد بيانات حالياً',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimaryLight),
+              ),
+              SizedBox(height: 6),
+              Text(
+                'يرجى تحديد أو إعداد منزل لعرض مخزون المؤونة',
+                style: TextStyle(fontSize: 13, color: AppColors.textSecondaryLight),
+              ),
+            ],
+          ),
+        ),
+      );
     }
 
     return Directionality(
@@ -260,17 +280,21 @@ class _TransferToShoppingDialogState extends ConsumerState<_TransferToShoppingDi
                     cat,
                     style: TextStyle(
                       color: isSelected
-                          ? (cat == 'Şok' ? AppColors.sokText : Colors.white)
-                          : Colors.white.withValues(alpha: 0.85),
+                          ? (cat == 'Şok'
+                              ? AppColors.sokText
+                              : (cat == 'الكل' || cat == 'عام'
+                                  ? AppColors.onPrimary
+                                  : Colors.white))
+                          : AppColors.textSecondary,
                       fontSize: 13,
                       fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
                     ),
                   ),
                   selected: isSelected,
                   selectedColor: color,
-                  backgroundColor: const Color(0xFF1E293B),
+                  backgroundColor: AppColors.surface,
                   side: BorderSide(
-                    color: isSelected ? color : Colors.white24,
+                    color: isSelected ? color : AppColors.border,
                     width: 1,
                   ),
                   showCheckmark: false,

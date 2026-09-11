@@ -37,11 +37,15 @@ class FakeAuthRepository implements AuthRepository {
     return AuthResponse(session: null, user: mockUser);
   }
 
+  Map<String, dynamic>? lastSignUpData;
+
   @override
   Future<AuthResponse> signUpWithEmail({
     required String email,
     required String password,
+    Map<String, dynamic>? data,
   }) async {
+    lastSignUpData = data;
     if (shouldThrow) {
       throw const AppException(
         code: 'AUTH_USER_EXISTS',
@@ -54,6 +58,18 @@ class FakeAuthRepository implements AuthRepository {
 
   @override
   Future<void> signOut() async {
+    mockUser = null;
+  }
+
+  @override
+  Future<void> deleteAccountWithPassword(String password) async {
+    if (shouldThrow) {
+      throw const AppException(
+        code: 'INVALID_PASSWORD',
+        messageAr: 'كلمة المرور غير صحيحة.',
+        messageTr: 'Şifre hatalı.',
+      );
+    }
     mockUser = null;
   }
 
@@ -127,10 +143,22 @@ void main() {
       final success = await controller.signUp(
         email: 'newuser@example.com',
         password: 'Password123',
+        data: {
+          'first_name': 'محمد',
+          'last_name': 'الحلبي',
+          'phone': '+905551234567',
+          'city': 'إسطنبول',
+          'age': 28,
+          'nationality': 'سوري',
+          'gender': 'ذكر',
+        },
       );
 
       expect(success, isTrue);
       expect(container.read(authControllerProvider).hasError, isFalse);
+      expect(fakeRepo.lastSignUpData?['first_name'], 'محمد');
+      expect(fakeRepo.lastSignUpData?['city'], 'إسطنبول');
+      expect(fakeRepo.lastSignUpData?['age'], 28);
     });
 
     test('signUp failure sets state to AsyncError and returns false', () async {
@@ -152,6 +180,30 @@ void main() {
       final controller = container.read(authControllerProvider.notifier);
       await controller.signOut();
       expect(container.read(authControllerProvider).hasError, isFalse);
+    });
+  });
+
+  group('AuthException Mapping Tests', () {
+    test('Invalid login credentials maps to unregistered / deleted account message', () {
+      const authEx = AuthException('Invalid login credentials', statusCode: '400');
+      final appEx = AppException.fromAuth(authEx);
+
+      expect(appEx.code, 'AUTH_INVALID_CREDENTIALS');
+      expect(
+        appEx.messageAr,
+        'هذا الحساب غير مسجل أو تم حذفه مسبقاً. يرجى التأكد من البيانات أو إنشاء حساب جديد.',
+      );
+    });
+
+    test('invalid_grant maps to unregistered / deleted account message', () {
+      const authEx = AuthException('invalid_grant: user not found');
+      final appEx = AppException.fromAuth(authEx);
+
+      expect(appEx.code, 'AUTH_INVALID_CREDENTIALS');
+      expect(
+        appEx.messageAr,
+        'هذا الحساب غير مسجل أو تم حذفه مسبقاً. يرجى التأكد من البيانات أو إنشاء حساب جديد.',
+      );
     });
   });
 }

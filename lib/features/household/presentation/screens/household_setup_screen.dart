@@ -1,10 +1,17 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../../../../core/error/app_exception.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/validators.dart';
+import '../../../auth/data/auth_repository.dart';
 import '../../../auth/presentation/controllers/auth_controller.dart';
+import '../../../notifications/data/notification_repository.dart';
+import '../../../notifications/domain/models/notification_model.dart';
+import '../../data/household_repository.dart';
 import '../controllers/current_household_controller.dart';
+import 'home_screen.dart';
 
 enum HouseholdSetupMode { create, join }
 
@@ -24,9 +31,100 @@ class _HouseholdSetupScreenState extends ConsumerState<HouseholdSetupScreen> {
   final _inviteCodeController = TextEditingController();
 
   HouseholdSetupMode _mode = HouseholdSetupMode.create;
+  bool _isCreating = false;
+  bool _isJoining = false;
+
+  int _cooldownSeconds = 0;
+  Timer? _cooldownTimer;
+  RealtimeChannel? _membershipChannel;
+
+  @override
+  void initState() {
+    super.initState();
+    _setupRealtimeMembershipListener();
+  }
+
+  void _setupRealtimeMembershipListener() {
+    try {
+      final currentUserId = Supabase.instance.client.auth.currentUser?.id;
+      if (currentUserId != null && currentUserId.isNotEmpty) {
+        _membershipChannel = Supabase.instance.client
+            .channel('public:household_members:user:$currentUserId')
+            .onPostgresChanges(
+              event: PostgresChangeEvent.insert,
+              schema: 'public',
+              table: 'household_members',
+              filter: PostgresChangeFilter(
+                type: PostgresChangeFilterType.eq,
+                column: 'user_id',
+                value: currentUserId,
+              ),
+              callback: (payload) async {
+                if (mounted) {
+                  ref.invalidate(userHouseholdsProvider);
+                  ref.invalidate(activeHouseholdProvider);
+                  ref.invalidate(userHasHouseholdProvider);
+                  ref.invalidate(currentHouseholdProvider);
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Row(
+                        children: [
+                          Icon(Icons.celebration_rounded, color: Colors.white),
+                          SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              '🎉 تمت الموافقة على طلب انضمامك! مرحباً بك في المنزل.',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ],
+                      ),
+                      backgroundColor: Color(0xFF00897B),
+                      duration: Duration(seconds: 4),
+                      behavior: SnackBarBehavior.floating,
+                    ),
+                  );
+
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute<void>(builder: (_) => const HomeScreen()),
+                    (route) => false,
+                  );
+                }
+              },
+            )
+            .subscribe();
+      }
+    } catch (_) {
+      // Fallback for tests / uninitialized client
+    }
+  }
+
+  void _startCooldown([int seconds = 10]) {
+    setState(() => _cooldownSeconds = seconds);
+    _cooldownTimer?.cancel();
+    _cooldownTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (!mounted) {
+        timer.cancel();
+        return;
+      }
+      if (_cooldownSeconds <= 1) {
+        timer.cancel();
+        setState(() => _cooldownSeconds = 0);
+      } else {
+        setState(() => _cooldownSeconds--);
+      }
+    });
+  }
 
   @override
   void dispose() {
+    try {
+      if (_membershipChannel != null) {
+        Supabase.instance.client.removeChannel(_membershipChannel!);
+      }
+    } catch (_) {}
+    _cooldownTimer?.cancel();
     _homeNameController.dispose();
     _inviteCodeController.dispose();
     super.dispose();
@@ -34,36 +132,37 @@ class _HouseholdSetupScreenState extends ConsumerState<HouseholdSetupScreen> {
 
   Future<void> _submitCreate() async {
     FocusScope.of(context).unfocus();
-    if (!_createFormKey.currentState!.validate()) return;
+    if (_createFormKey.currentState != null && !_createFormKey.currentState!.validate()) {
+      return;
+    }
 
-    final name = _homeNameController.text.trim();
-    final controller = ref.read(currentHouseholdProvider.notifier);
-    await controller.createHousehold(name);
-  }
+    final rawName = _homeNameController.text.trim();
+    final name = rawName.isEmpty ? 'منزلنا' : rawName;
 
-  Future<void> _submitJoin() async {
-    FocusScope.of(context).unfocus();
-    if (!_joinFormKey.currentState!.validate()) return;
+    setState(() => _isCreating = true);
+    try {
+      final controller = ref.read(currentHouseholdProvider.notifier);
+      final success = await controller.createHousehold(name);
 
-    final code = _inviteCodeController.text.trim();
-    final controller = ref.read(currentHouseholdProvider.notifier);
-    await controller.joinHousehold(code);
-  }
+      if (!mounted) return;
 
-  @override
-  Widget build(BuildContext context) {
-    final householdState = ref.watch(currentHouseholdProvider);
-    final isLoading = householdState.isLoading;
+      if (success) {
+        ref.invalidate(userHouseholdsProvider);
+        ref.invalidate(activeHouseholdProvider);
+        ref.invalidate(userHasHouseholdProvider);
 
-    // Listen to errors
-    ref.listen<AsyncValue<dynamic>>(currentHouseholdProvider, (_, next) {
-      if (next.hasError) {
-        final appException = AppException.fromGeneric(next.error);
-        final errorMessage = appException.localizedMessage('ar');
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute<void>(builder: (_) => const HomeScreen()),
+          (route) => false,
+        );
+      } else {
+        final error = ref.read(currentHouseholdProvider).error;
+        final appException = AppException.fromGeneric(error);
+        final errorMessage = error != null ? error.toString() : appException.localizedMessage('ar');
 
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            backgroundColor: AppColors.terracotta,
+            backgroundColor: Colors.red.shade700,
             behavior: SnackBarBehavior.floating,
             content: Row(
               children: [
@@ -71,7 +170,7 @@ class _HouseholdSetupScreenState extends ConsumerState<HouseholdSetupScreen> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: Text(
-                    errorMessage,
+                    'تعذر إنشاء المنزل: $errorMessage',
                     textAlign: TextAlign.right,
                     style: const TextStyle(color: Colors.white, fontSize: 14),
                   ),
@@ -81,7 +180,205 @@ class _HouseholdSetupScreenState extends ConsumerState<HouseholdSetupScreen> {
           ),
         );
       }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.red.shade700,
+          behavior: SnackBarBehavior.floating,
+          content: Row(
+            children: [
+              const Icon(Icons.error_outline_rounded, color: Colors.white),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'تعذر إنشاء المنزل: $e',
+                  textAlign: TextAlign.right,
+                  style: const TextStyle(color: Colors.white, fontSize: 14),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isCreating = false);
+      }
+    }
+  }
+
+  Future<void> _submitJoin() async {
+    FocusScope.of(context).unfocus();
+
+    if (_cooldownSeconds > 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.amber.shade800,
+          behavior: SnackBarBehavior.floating,
+          content: Row(
+            children: [
+              const Icon(Icons.timer_outlined, color: Colors.white),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'يرجى الانتظار $_cooldownSeconds ثوانٍ قبل إرسال طلب جديد',
+                  textAlign: TextAlign.right,
+                  style: const TextStyle(color: Colors.white, fontSize: 14),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+      return;
+    }
+
+    if (_joinFormKey.currentState != null && !_joinFormKey.currentState!.validate()) {
+      return;
+    }
+
+    final code = _inviteCodeController.text.trim();
+    setState(() => _isJoining = true);
+    try {
+      final householdRepo = ref.read(householdRepositoryProvider);
+      await householdRepo.requestJoinHousehold(code);
+
+      _startCooldown(10);
+
+      if (!mounted) return;
+
+      await showDialog<void>(
+        context: context,
+        barrierDismissible: false,
+        builder: (ctx) => Directionality(
+          textDirection: TextDirection.rtl,
+          child: AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            title: const Row(
+              children: [
+                Icon(Icons.hourglass_top_rounded, color: Colors.amber, size: 28),
+                SizedBox(width: 8),
+                Text('تم إرسال الطلب', style: TextStyle(fontWeight: FontWeight.bold)),
+              ],
+            ),
+            content: const Text(
+              'تم إرسال طلب الانضمام إلى صاحب المنزل بنجاح.\nطلبك قيد المراجعة حالياً، وسيتم إشعارك فور قبول انضمامك.',
+              style: TextStyle(height: 1.5),
+            ),
+            actions: [
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF82C8E5),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                ),
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('حسناً', style: TextStyle(color: Colors.white)),
+              ),
+            ],
+          ),
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      final rawError = e.toString().replaceFirst('Exception: ', '').trim();
+      final appException = AppException.fromGeneric(e);
+      final errorMessage = (rawError.isNotEmpty && !rawError.contains('Instance of'))
+          ? rawError
+          : appException.localizedMessage('ar');
+
+      if (errorMessage.contains('يرجى الانتظار') ||
+          errorMessage.toLowerCase().contains('wait') ||
+          errorMessage.toLowerCase().contains('cooldown')) {
+        final match = RegExp(r'(\d+)').firstMatch(errorMessage);
+        final secs = match != null ? int.tryParse(match.group(1)!) ?? 10 : 10;
+        _startCooldown(secs);
+      }
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: Colors.red.shade700,
+          behavior: SnackBarBehavior.floating,
+          content: Row(
+            children: [
+              const Icon(Icons.error_outline_rounded, color: Colors.white),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  errorMessage,
+                  textAlign: TextAlign.right,
+                  style: const TextStyle(color: Colors.white, fontSize: 14),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isJoining = false);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Reactive listener for join_accepted notification while user is waiting on this screen
+    ref.listen<AsyncValue<List<NotificationModel>>>(notificationsStreamProvider, (prev, next) {
+      next.whenData((notifications) {
+        final acceptedNotification = notifications.where(
+          (n) => n.type == NotificationType.joinAccepted && !n.isRead,
+        ).firstOrNull ?? notifications.where(
+          (n) => n.type == NotificationType.joinAccepted,
+        ).firstOrNull;
+
+        if (acceptedNotification != null && mounted) {
+          // 1. Refresh all household providers
+          ref.invalidate(userHouseholdsProvider);
+          ref.invalidate(activeHouseholdProvider);
+          ref.invalidate(userHasHouseholdProvider);
+          ref.invalidate(currentHouseholdProvider);
+
+          // 2. Mark notification as read so it doesn't fire multiple times
+          if (!acceptedNotification.isRead) {
+            try {
+              ref.read(notificationRepositoryProvider).markAsRead(acceptedNotification.id);
+            } catch (_) {}
+          }
+
+          // 3. Show celebration feedback
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Row(
+                children: [
+                  Icon(Icons.celebration_rounded, color: Colors.white),
+                  SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      '🎉 تمت الموافقة على طلب انضمامك! مرحباً بك في المنزل.',
+                      style: TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ],
+              ),
+              backgroundColor: Color(0xFF00897B),
+              duration: Duration(seconds: 4),
+              behavior: SnackBarBehavior.floating,
+            ),
+          );
+
+          // 4. Navigate immediately to HomeScreen and remove setup screen from stack
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute<void>(builder: (_) => const HomeScreen()),
+            (route) => false,
+          );
+        }
+      });
     });
+
+    final householdState = ref.watch(currentHouseholdProvider);
+    final isAsyncLoading = householdState.isLoading;
+    final isLoading = _isCreating || _isJoining || isAsyncLoading;
 
     return Directionality(
       textDirection: TextDirection.rtl,
@@ -189,20 +486,18 @@ class _HouseholdSetupScreenState extends ConsumerState<HouseholdSetupScreen> {
                             TextFormField(
                               controller: _homeNameController,
                               decoration: const InputDecoration(
-                                hintText: 'مثال: بيت إسطنبول، شقة باشاك شهير',
+                                hintText: 'مثال: منزلنا، بيت إسطنبول، شقة باشاك شهير',
                                 prefixIcon: Icon(Icons.home_outlined),
                               ),
                               validator: (value) {
-                                if (value == null || value.trim().isEmpty) {
-                                  return 'يرجى كتابة اسم للمنزل.';
-                                }
+                                // Default name is 'منزلنا' if left blank, so no blocking error
                                 return null;
                               },
                             ),
                             const SizedBox(height: 24),
                             ElevatedButton(
                               onPressed: isLoading ? null : _submitCreate,
-                              child: isLoading
+                              child: _isCreating
                                   ? const SizedBox(
                                       height: 22,
                                       width: 22,
@@ -257,8 +552,8 @@ class _HouseholdSetupScreenState extends ConsumerState<HouseholdSetupScreen> {
                             ),
                             const SizedBox(height: 24),
                             ElevatedButton(
-                              onPressed: isLoading ? null : _submitJoin,
-                              child: isLoading
+                              onPressed: (_cooldownSeconds > 0 || isLoading) ? null : _submitJoin,
+                              child: _isJoining
                                   ? const SizedBox(
                                       height: 22,
                                       width: 22,
@@ -267,9 +562,11 @@ class _HouseholdSetupScreenState extends ConsumerState<HouseholdSetupScreen> {
                                         color: Colors.white,
                                       ),
                                     )
-                                  : const Text(
-                                      'الانضمام إلى المنزل',
-                                      style: TextStyle(
+                                  : Text(
+                                      _cooldownSeconds > 0
+                                          ? 'يرجى الانتظار ($_cooldownSeconds ثانية)...'
+                                          : 'الانضمام إلى المنزل',
+                                      style: const TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.bold,
                                       ),

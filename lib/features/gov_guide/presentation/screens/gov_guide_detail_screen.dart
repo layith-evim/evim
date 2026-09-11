@@ -89,18 +89,21 @@ class _GovGuideDetailScreenState extends ConsumerState<GovGuideDetailScreen> {
             return Directionality(
               textDirection: TextDirection.rtl,
               child: AlertDialog(
-                backgroundColor: AppColors.surfaceDark,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                backgroundColor: AppColors.surface,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(18),
+                  side: const BorderSide(color: AppColors.border),
+                ),
                 title: const Row(
                   children: [
-                    Icon(Icons.calendar_month_rounded, color: AppColors.primaryLight),
+                    Icon(Icons.calendar_month_rounded, color: AppColors.primaryDark),
                     SizedBox(width: 8),
                     Text(
                       'تحويل إلى موعد في الرادار',
                       style: TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white,
+                        color: AppColors.textPrimary,
                       ),
                     ),
                   ],
@@ -112,16 +115,15 @@ class _GovGuideDetailScreenState extends ConsumerState<GovGuideDetailScreen> {
                     children: [
                       const Text(
                         'سيتم إضافة هذا الموعد إلى رادار المواعيد والمهام الحرجة لتلقي التنبيهات ومتابعة العد التنازلي.',
-                        style: TextStyle(fontSize: 13, color: Colors.white70),
+                        style: TextStyle(fontSize: 13, color: AppColors.textSecondary),
                       ),
                       const SizedBox(height: 16),
                       TextField(
                         controller: titleController,
-                        style: const TextStyle(color: Colors.white),
+                        style: const TextStyle(color: AppColors.textPrimary),
                         decoration: const InputDecoration(
                           labelText: 'عنوان الموعد',
-                          labelStyle: TextStyle(color: Colors.white70),
-                          prefixIcon: Icon(Icons.title_rounded, color: Colors.white70),
+                          prefixIcon: Icon(Icons.title_rounded, color: AppColors.textSecondary),
                         ),
                       ),
                       const SizedBox(height: 14),
@@ -141,12 +143,12 @@ class _GovGuideDetailScreenState extends ConsumerState<GovGuideDetailScreen> {
                         child: Container(
                           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
                           decoration: BoxDecoration(
-                            border: Border.all(color: Colors.white24),
+                            border: Border.all(color: AppColors.border),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.event_rounded, color: AppColors.primaryLight),
+                              const Icon(Icons.event_rounded, color: AppColors.primaryDark),
                               const SizedBox(width: 8),
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -155,7 +157,7 @@ class _GovGuideDetailScreenState extends ConsumerState<GovGuideDetailScreen> {
                                     'تاريخ الموعد / الموعد النهائي',
                                     style: TextStyle(
                                       fontSize: 11,
-                                      color: Colors.white70,
+                                      color: AppColors.textSecondary,
                                     ),
                                   ),
                                   const SizedBox(height: 2),
@@ -164,7 +166,7 @@ class _GovGuideDetailScreenState extends ConsumerState<GovGuideDetailScreen> {
                                     style: const TextStyle(
                                       fontSize: 14,
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.white,
+                                      color: AppColors.textPrimary,
                                     ),
                                   ),
                                 ],
@@ -176,12 +178,11 @@ class _GovGuideDetailScreenState extends ConsumerState<GovGuideDetailScreen> {
                       const SizedBox(height: 14),
                       TextField(
                         controller: notesController,
-                        style: const TextStyle(color: Colors.white),
+                        style: const TextStyle(color: AppColors.textPrimary),
                         maxLines: 2,
                         decoration: const InputDecoration(
                           labelText: 'ملاحظات إضافية (اختياري)',
-                          labelStyle: TextStyle(color: Colors.white70),
-                          prefixIcon: Icon(Icons.notes_rounded, color: Colors.white70),
+                          prefixIcon: Icon(Icons.notes_rounded, color: AppColors.textSecondary),
                         ),
                       ),
                     ],
@@ -190,12 +191,12 @@ class _GovGuideDetailScreenState extends ConsumerState<GovGuideDetailScreen> {
                 actions: [
                   TextButton(
                     onPressed: () => Navigator.pop(dialogContext),
-                    child: const Text('إلغاء', style: TextStyle(color: Colors.white70)),
+                    child: const Text('إلغاء', style: TextStyle(color: AppColors.textSecondary)),
                   ),
                   ElevatedButton.icon(
                     style: ElevatedButton.styleFrom(
                       backgroundColor: AppColors.primary,
-                      foregroundColor: Colors.white,
+                      foregroundColor: AppColors.onPrimary,
                     ),
                     onPressed: _isProcessing
                         ? null
@@ -276,7 +277,7 @@ class _GovGuideDetailScreenState extends ConsumerState<GovGuideDetailScreen> {
             style: const TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: AppColors.textPrimary,
             ),
           ),
           actions: [
@@ -299,7 +300,7 @@ class _GovGuideDetailScreenState extends ConsumerState<GovGuideDetailScreen> {
                   const SizedBox(height: 12),
                   Text(
                     'تعذر تحميل الخطوات: $error',
-                    style: const TextStyle(color: Colors.white70),
+                    style: const TextStyle(color: AppColors.textSecondary),
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton(
@@ -323,9 +324,9 @@ class _GovGuideDetailScreenState extends ConsumerState<GovGuideDetailScreen> {
                     margin: const EdgeInsets.all(16),
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: AppColors.surfaceDark,
+                      color: AppColors.surface,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: AppColors.primaryLight.withOpacity(0.4)),
+                      border: Border.all(color: AppColors.border),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -334,7 +335,7 @@ class _GovGuideDetailScreenState extends ConsumerState<GovGuideDetailScreen> {
                           widget.guide.description,
                           style: const TextStyle(
                             fontSize: 14,
-                            color: Colors.white70,
+                            color: AppColors.textSecondary,
                             height: 1.4,
                           ),
                         ),
@@ -347,15 +348,15 @@ class _GovGuideDetailScreenState extends ConsumerState<GovGuideDetailScreen> {
                               style: const TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.primaryLight,
+                                color: AppColors.textPrimary,
                               ),
                             ),
                             Text(
                               '${(percent * 100).toInt()}%',
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontSize: 13,
                                 fontWeight: FontWeight.bold,
-                                color: AppColors.primaryLight,
+                                color: percent == 1.0 ? AppColors.accent : AppColors.primaryDark,
                               ),
                             ),
                           ],
@@ -366,9 +367,9 @@ class _GovGuideDetailScreenState extends ConsumerState<GovGuideDetailScreen> {
                           child: LinearProgressIndicator(
                             value: percent,
                             minHeight: 8,
-                            backgroundColor: Colors.white12,
+                            backgroundColor: AppColors.border,
                             valueColor: AlwaysStoppedAnimation<Color>(
-                              percent == 1.0 ? AppColors.accent : AppColors.primaryLight,
+                              percent == 1.0 ? AppColors.accent : AppColors.primary,
                             ),
                           ),
                         ),
@@ -435,11 +436,11 @@ class _StepTaskCard extends StatelessWidget {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
         side: BorderSide(
-          color: isDone ? AppColors.accent.withOpacity(0.6) : Colors.white24,
+          color: isDone ? AppColors.accent.withOpacity(0.5) : AppColors.border,
           width: isDone ? 1.5 : 1.0,
         ),
       ),
-      color: isDone ? AppColors.accent.withOpacity(0.08) : AppColors.surfaceDark,
+      color: isDone ? AppColors.accent.withOpacity(0.06) : AppColors.surface,
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(
@@ -477,7 +478,7 @@ class _StepTaskCard extends StatelessWidget {
                       fontSize: 15,
                       fontWeight: FontWeight.bold,
                       decoration: isDone ? TextDecoration.lineThrough : null,
-                      color: isDone ? Colors.white60 : Colors.white,
+                      color: isDone ? AppColors.textSecondary : AppColors.textPrimary,
                     ),
                   ),
                 ),
@@ -501,7 +502,7 @@ class _StepTaskCard extends StatelessWidget {
                 task.instructions,
                 style: const TextStyle(
                   fontSize: 13,
-                  color: Colors.white70,
+                  color: AppColors.textSecondary,
                   height: 1.45,
                 ),
               ),
@@ -520,7 +521,7 @@ class _StepTaskCard extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
-                        color: Colors.white70,
+                        color: AppColors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 6),
@@ -531,10 +532,10 @@ class _StepTaskCard extends StatelessWidget {
                         return Container(
                           padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                           decoration: BoxDecoration(
-                            color: AppColors.warmAmber.withOpacity(0.18),
+                            color: AppColors.warmAmber.withOpacity(0.12),
                             borderRadius: BorderRadius.circular(8),
                             border: Border.all(
-                              color: AppColors.warmAmber.withOpacity(0.45),
+                              color: AppColors.warmAmber.withOpacity(0.35),
                             ),
                           ),
                           child: Row(
@@ -550,7 +551,7 @@ class _StepTaskCard extends StatelessWidget {
                                 doc,
                                 style: const TextStyle(
                                   fontSize: 12,
-                                  color: Colors.white,
+                                  color: AppColors.textPrimary,
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
@@ -576,8 +577,8 @@ class _StepTaskCard extends StatelessWidget {
                   if (task.eDevletLink != null && task.eDevletLink!.isNotEmpty)
                     OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
-                        foregroundColor: AppColors.primaryLight,
-                        side: const BorderSide(color: AppColors.primaryLight),
+                        foregroundColor: AppColors.primaryDark,
+                        side: const BorderSide(color: AppColors.primaryDark),
                         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                       ),

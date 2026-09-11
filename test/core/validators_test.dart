@@ -1,4 +1,4 @@
-import 'package:flutter_test/flutter_test.dart';
+﻿import 'package:flutter_test/flutter_test.dart';
 import 'package:evim/core/utils/validators.dart';
 
 void main() {
@@ -17,22 +17,77 @@ void main() {
       });
     });
 
-    group('Password Validation (Min 8, 1 uppercase, 1 digit)', () {
+    group('Strict Password Validation (Min 8, 1 uppercase A-Z)', () {
       test('valid strong password returns null', () {
         expect(Validators.validatePassword('Evim2026!'), isNull);
         expect(Validators.validatePassword('Password123'), isNull);
+        expect(Validators.validatePassword('LongSecretPassword'), isNull);
       });
 
-      test('password lacking length returns error', () {
+      test('password lacking length (< 8) returns error', () {
         expect(Validators.validatePassword('Pass1'), isNotNull);
+        expect(
+          Validators.validatePassword('Pass1'),
+          'يجب أن تتكون كلمة المرور من 8 خانات على الأقل وتحتوي على حرف كبير واحد على الأقل (A-Z).',
+        );
       });
 
       test('password lacking uppercase returns error', () {
+        expect(Validators.validatePassword('12345678'), isNotNull);
         expect(Validators.validatePassword('evimistanbul1'), isNotNull);
+        expect(
+          Validators.validatePassword('12345678'),
+          'يجب أن تتكون كلمة المرور من 8 خانات على الأقل وتحتوي على حرف كبير واحد على الأقل (A-Z).',
+        );
+      });
+    });
+
+    group('Password Confirmation Match Validation', () {
+      test('matching passwords return null', () {
+        expect(
+          Validators.validateConfirmPassword('MyPassword123', 'MyPassword123'),
+          isNull,
+        );
       });
 
-      test('password lacking digit returns error', () {
-        expect(Validators.validatePassword('EvimIstanbulNoDigit'), isNotNull);
+      test('mismatched passwords return error', () {
+        expect(
+          Validators.validateConfirmPassword('WrongPass', 'MyPassword123'),
+          'كلمتا المرور غير متطابقتين.',
+        );
+      });
+
+      test('empty confirmation returns error', () {
+        expect(
+          Validators.validateConfirmPassword('', 'MyPassword123'),
+          'يرجى تأكيد كلمة المرور.',
+        );
+      });
+    });
+
+    group('Age Validation (12 to 100)', () {
+      test('valid age within range returns null', () {
+        expect(Validators.validateAge('26'), isNull);
+        expect(Validators.validateAge('12'), isNull);
+        expect(Validators.validateAge('100'), isNull);
+      });
+
+      test('age out of range or invalid returns error', () {
+        expect(Validators.validateAge('11'), isNotNull);
+        expect(Validators.validateAge('105'), isNotNull);
+        expect(Validators.validateAge(''), isNotNull);
+        expect(Validators.validateAge('abc'), isNotNull);
+      });
+    });
+
+    group('Required Field Validation', () {
+      test('non-empty value returns null', () {
+        expect(Validators.validateRequired('محمد', 'الاسم الأول'), isNull);
+      });
+
+      test('empty value returns error with field name', () {
+        expect(Validators.validateRequired('', 'الاسم الأول'), 'الاسم الأول مطلوب.');
+        expect(Validators.validateRequired('   ', 'الكنية'), 'الكنية مطلوب.');
       });
     });
 
@@ -44,10 +99,10 @@ void main() {
 
       test('invalid invite code returns error', () {
         expect(Validators.validateInviteCode(''), isNotNull);
-        expect(Validators.validateInviteCode('12345'), isNotNull); // 5 chars
-        expect(Validators.validateInviteCode('1234567'), isNotNull); // 7 chars
-        expect(Validators.validateInviteCode('evim01'), isNotNull); // lowercase
-        expect(Validators.validateInviteCode('EVIM!1'), isNotNull); // special char
+        expect(Validators.validateInviteCode('12345'), isNotNull);
+        expect(Validators.validateInviteCode('1234567'), isNotNull);
+        expect(Validators.validateInviteCode('evim01'), isNotNull);
+        expect(Validators.validateInviteCode('EVIM!1'), isNotNull);
       });
     });
 
@@ -76,8 +131,8 @@ void main() {
 
       test('invalid phone numbers return error', () {
         expect(Validators.validateTurkishPhone(''), isNotNull);
-        expect(Validators.validateTurkishPhone('02121234567'), isNotNull); // landline
-        expect(Validators.validateTurkishPhone('+1 555 123 4567'), isNotNull); // US number
+        expect(Validators.validateTurkishPhone('02121234567'), isNotNull);
+        expect(Validators.validateTurkishPhone('+1 555 123 4567'), isNotNull);
       });
     });
   });

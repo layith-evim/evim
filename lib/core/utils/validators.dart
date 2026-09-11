@@ -29,25 +29,48 @@ class Validators {
     return null;
   }
 
-  /// Validates password: min 8 characters, at least 1 uppercase letter, 1 numeric digit.
+  /// Validates password: min 8 characters, at least 1 uppercase letter (A-Z).
   static String? validatePassword(String? value, {String locale = 'ar'}) {
     if (value == null || value.isEmpty) {
       return locale == 'tr' ? 'Şifre boş bırakılamaz.' : 'كلمة المرور مطلوبة.';
     }
-    if (value.length < 8) {
+    if (value.length < 8 || !RegExp(r'[A-Z]').hasMatch(value)) {
       return locale == 'tr'
-          ? 'Şifre en az 8 karakter olmalıdır.'
-          : 'يجب أن تتكون كلمة المرور من 8 أحرف على الأقل.';
+          ? 'Şifre en az 8 karakter olmalı ve en az bir büyük harf (A-Z) içermelidir.'
+          : 'يجب أن تتكون كلمة المرور من 8 خانات على الأقل وتحتوي على حرف كبير واحد على الأقل (A-Z).';
     }
-    if (!RegExp(r'[A-Z]').hasMatch(value)) {
-      return locale == 'tr'
-          ? 'Şifre en az bir büyük harf içermelidir.'
-          : 'يجب أن تحتوي كلمة المرور على حرف كبير واحد على الأقل.';
+    return null;
+  }
+
+  /// Validates password confirmation match
+  static String? validateConfirmPassword(String? value, String password, {String locale = 'ar'}) {
+    if (value == null || value.isEmpty) {
+      return locale == 'tr' ? 'Şifre onayı gereklidir.' : 'يرجى تأكيد كلمة المرور.';
     }
-    if (!RegExp(r'[0-9]').hasMatch(value)) {
+    if (value != password) {
+      return locale == 'tr' ? 'Şifreler eşleşmiyor.' : 'كلمتا المرور غير متطابقتين.';
+    }
+    return null;
+  }
+
+  /// Validates age: must be an integer between 12 and 100
+  static String? validateAge(String? value, {String locale = 'ar'}) {
+    if (value == null || value.trim().isEmpty) {
+      return locale == 'tr' ? 'Yaş alanı gereklidir.' : 'العمر مطلوب.';
+    }
+    final age = int.tryParse(value.trim());
+    if (age == null || age < 12 || age > 100) {
       return locale == 'tr'
-          ? 'Şifre en az bir rakam içermelidir.'
-          : 'يجب أن تحتوي كلمة المرور على رقم واحد على الأقل.';
+          ? 'Yaş 12 ile 100 arasında olmalıdır.'
+          : 'يجب أن يكون العمر بين 12 و 100 سنة.';
+    }
+    return null;
+  }
+
+  /// Validates generic required non-empty field
+  static String? validateRequired(String? value, String fieldName, {String locale = 'ar'}) {
+    if (value == null || value.trim().isEmpty) {
+      return locale == 'tr' ? '$fieldName alanı gereklidir.' : '$fieldName مطلوب.';
     }
     return null;
   }

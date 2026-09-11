@@ -25,15 +25,20 @@ class AuthController extends AsyncNotifier<void> {
     return !state.hasError;
   }
 
-  /// Registers a new user with email and password
+  /// Registers a new user with email and password and optional profile metadata
   Future<bool> signUp({
     required String email,
     required String password,
+    Map<String, dynamic>? data,
   }) async {
     state = const AsyncValue.loading();
     state = await AsyncValue.guard(() async {
       final repo = ref.read(authRepositoryProvider);
-      await repo.signUpWithEmail(email: email, password: password);
+      await repo.signUpWithEmail(
+        email: email,
+        password: password,
+        data: data,
+      );
     });
 
     return !state.hasError;

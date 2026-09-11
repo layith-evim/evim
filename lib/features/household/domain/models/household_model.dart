@@ -3,6 +3,7 @@ class HouseholdModel {
   final String id;
   final String name;
   final String inviteCode;
+  final String? city;
   final bool isPremium;
   final DateTime createdAt;
 
@@ -10,6 +11,7 @@ class HouseholdModel {
     required this.id,
     required this.name,
     required this.inviteCode,
+    this.city,
     this.isPremium = false,
     required this.createdAt,
   });
@@ -19,6 +21,7 @@ class HouseholdModel {
       id: json['id'] as String,
       name: json['name'] as String,
       inviteCode: json['invite_code'] as String,
+      city: json['city'] as String?,
       isPremium: json['is_premium'] as bool? ?? false,
       createdAt: json['created_at'] != null
           ? DateTime.parse(json['created_at'] as String)
@@ -31,6 +34,7 @@ class HouseholdModel {
       'id': id,
       'name': name,
       'invite_code': inviteCode,
+      if (city != null) 'city': city,
       'is_premium': isPremium,
       'created_at': createdAt.toIso8601String(),
     };
@@ -40,6 +44,7 @@ class HouseholdModel {
     String? id,
     String? name,
     String? inviteCode,
+    String? city,
     bool? isPremium,
     DateTime? createdAt,
   }) {
@@ -47,6 +52,7 @@ class HouseholdModel {
       id: id ?? this.id,
       name: name ?? this.name,
       inviteCode: inviteCode ?? this.inviteCode,
+      city: city ?? this.city,
       isPremium: isPremium ?? this.isPremium,
       createdAt: createdAt ?? this.createdAt,
     );
