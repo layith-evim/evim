@@ -1,0 +1,19 @@
+# Flutter / Dart
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+
+# IDEs
+.idea/
+.vscode/
+*.iml
+
+# Environment secrets (keep .env.example tracked)
+.env
+!.env.example
+
+# OS
+.DS_Store
+Thumbs.db
